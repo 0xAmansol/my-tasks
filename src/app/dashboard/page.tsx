@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { DashboardHeader } from "@/components/dashboard-header";
 import { ListView } from "@/components/list-view";
 import { BoardView } from "@/components/board-view";
-import { Task, ViewType } from "../../../types/task";
+import { Task, ViewType } from "../../types/task";
+import { getAllTasks } from "@/utils/firestore";
 
 const initialTasks: Task[] = [
   {
@@ -32,16 +33,32 @@ const initialTasks: Task[] = [
 
 export default function DashboardPage() {
   const [view, setView] = useState<ViewType>("list");
-  const [tasks] = useState<Task[]>(initialTasks);
+  const [tasks, setTasks] = useState<Task[]>(initialTasks);
+
+  const handleUpdateTask = (updatedTask: Task) => {
+    setTasks((prevTasks) =>
+      prevTasks.map((task) => (task.id === updatedTask.id ? updatedTask : task))
+    );
+  };
+
+  useEffect(() => {
+    const fetchTasks = async () => {
+      const tasks = await getAllTasks();
+      setTasks(tasks as []);
+      console.log(tasks);
+    };
+
+    fetchTasks();
+  });
 
   return (
     <main className="min-h-screen bg-white p-6">
       <div className="max-w-7xl mx-auto space-y-6">
         <DashboardHeader view={view} onViewChange={setView} />
         {view === "list" ? (
-          <ListView tasks={tasks} />
+          <ListView tasks={tasks} onUpdateTask={handleUpdateTask} />
         ) : (
-          <BoardView tasks={tasks} />
+          <BoardView tasks={tasks} onUpdateTask={handleUpdateTask} />
         )}
       </div>
     </main>

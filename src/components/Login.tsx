@@ -22,9 +22,7 @@ const Login = () => {
   };
   return (
     <div>
-      <InteractiveHoverButton onClick={handleLogin}>
-        Login with Google
-      </InteractiveHoverButton>
+      <InteractiveHoverButton onClick={handleLogin} />
     </div>
   );
 };
