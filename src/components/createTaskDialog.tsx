@@ -28,11 +28,14 @@ export function CreateTaskDialog() {
   const [isOpen, setIsOpen] = useState(false);
   const [task, setTask] = useState<Task>({
     id: crypto.randomUUID(),
+    userId: "userId",
     title: "Add a title",
     category: "Add a category",
     status: "NONE",
     dueDate: "",
+    description: "HEY THERE",
     attachments: [] as string[],
+    completed: false,
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -113,18 +116,24 @@ export function CreateTaskDialog() {
                 <div className="flex gap-2">
                   <Button
                     type="button"
-                    variant="outline"
+                    className={
+                      task.category == "Work"
+                        ? "bg-purple-600 hover:bg-purple-700 flex-1"
+                        : "default"
+                    }
                     size="sm"
-                    className="flex-1"
                     onClick={() => setTask({ ...task, category: "Work" })}
                   >
                     Work
                   </Button>
                   <Button
                     type="button"
-                    variant="outline"
+                    className={
+                      task.category == "Personal"
+                        ? "bg-purple-600 hover:bg-purple-700 flex-1"
+                        : "default"
+                    }
                     size="sm"
-                    className="flex-1"
                     onClick={() => setTask({ ...task, category: "Personal" })}
                   >
                     Personal
@@ -184,7 +193,7 @@ export function CreateTaskDialog() {
                   onChange={() => {}}
                 />
               </div>
-              {task.attachments.map((url, index) => (
+              {task.attachments?.map((url, index) => (
                 <div key={index} className="mt-2 text-sm text-gray-600">
                   {url.split("/").pop()}
                 </div>
@@ -213,7 +222,7 @@ export function CreateTaskDialog() {
                   const urls = await Promise.all(uploadPromises);
                   setTask({
                     ...task,
-                    attachments: [...task.attachments, ...urls],
+                    attachments: [...(task.attachments ?? []), ...urls],
                   });
                 }}
               />

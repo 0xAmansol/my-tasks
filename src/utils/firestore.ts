@@ -6,14 +6,30 @@ import {
   getDocs,
   query,
   updateDoc,
+  where,
 } from "firebase/firestore";
 import { db } from "../lib/firebase";
 import { Task } from "@/types/task";
+import { getAuth } from "firebase/auth";
 
 //add a task
 export const addTask = async (task: Task) => {
+  const auth = getAuth();
+
+  const user = auth.currentUser;
+  if (!user || !user.email) {
+    return "User not authenticated";
+  }
+
   try {
-    const docRef = await addDoc(collection(db, "tasks"), task);
+    const docRef = await addDoc(collection(db, "tasks"), {
+      title: task.title,
+      attachments: task.attachments,
+      status: task.status,
+      dueDate: task.dueDate,
+      category: task.category,
+      userId: user.email,
+    });
     return docRef.id;
   } catch (error) {
     return error;
@@ -22,9 +38,19 @@ export const addTask = async (task: Task) => {
 
 //get all tasks
 export const getAllTasks = async () => {
+  const auth = getAuth();
+  const user = auth.currentUser;
+
+  if (!user || !user.email) {
+    return "User not authenticated";
+  }
   try {
-    const q = query(collection(db, "tasks"));
-    const querySnapshot = await getDocs(q);
+    const tasksCollection = query(collection(db, "tasks"));
+    const tasksQuery = query(
+      tasksCollection,
+      where("userId", "==", user.email)
+    );
+    const querySnapshot = await getDocs(tasksQuery);
     const tasks = querySnapshot.docs.map((doc) => ({
       id: doc.id,
       ...doc.data(),

@@ -95,7 +95,14 @@ export function EditTaskDialog({ task, onUpdate }: EditTaskDialogProps) {
                   S
                 </Button>
               </div>
-              <Textarea id="description" value="" className="min-h-[100px]" />
+              <Textarea
+                id="description"
+                value={editedTask.description}
+                onChange={(e) =>
+                  setEditedTask({ ...editedTask, description: e.target.value })
+                }
+                className="min-h-[100px]"
+              />
             </div>
 
             <div className="grid grid-cols-2 gap-4">

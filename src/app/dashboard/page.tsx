@@ -5,41 +5,17 @@ import { DashboardHeader } from "@/components/dashboard-header";
 import { ListView } from "@/components/list-view";
 import { BoardView } from "@/components/board-view";
 import { Task, ViewType } from "../../types/task";
-import { getAllTasks } from "@/utils/firestore";
+import { getAllTasks, updateTask } from "@/utils/firestore";
+import { getAuth } from "firebase/auth";
 
-const initialTasks: Task[] = [
-  {
-    id: "1",
-    title: "Design System Implementation",
-    dueDate: "Today",
-    category: "Design",
-    status: "TODO",
-  },
-  {
-    id: "2",
-    title: "User Research",
-    dueDate: "Tomorrow",
-    category: "Research",
-    status: "IN_PROGRESS",
-  },
-  {
-    id: "3",
-    title: "API Documentation",
-    dueDate: "Next Week",
-    category: "Development",
-    status: "COMPLETED",
-  },
-];
+const initialTasks: Task[] = [];
 
 export default function DashboardPage() {
   const [view, setView] = useState<ViewType>("list");
   const [tasks, setTasks] = useState<Task[]>(initialTasks);
 
-  const handleUpdateTask = (updatedTask: Task) => {
-    setTasks((prevTasks) =>
-      prevTasks.map((task) => (task.id === updatedTask.id ? updatedTask : task))
-    );
-  };
+  const auth = getAuth();
+  const userImage = auth.currentUser?.photoURL || "/default-user.png";
 
   useEffect(() => {
     const fetchTasks = async () => {
@@ -54,11 +30,15 @@ export default function DashboardPage() {
   return (
     <main className="min-h-screen bg-white p-6">
       <div className="max-w-7xl mx-auto space-y-6">
-        <DashboardHeader view={view} onViewChange={setView} />
+        <DashboardHeader
+          view={view}
+          onViewChange={setView}
+          userImage={userImage}
+        />
         {view === "list" ? (
-          <ListView tasks={tasks} onUpdateTask={handleUpdateTask} />
+          <ListView tasks={tasks} onUpdateTask={updateTask} />
         ) : (
-          <BoardView tasks={tasks} onUpdateTask={handleUpdateTask} />
+          <BoardView tasks={tasks} onUpdateTask={updateTask} />
         )}
       </div>
     </main>

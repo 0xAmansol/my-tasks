@@ -10,13 +10,30 @@ import {
 import { ViewType } from "@/types/task";
 import { Search } from "lucide-react";
 import { CreateTaskDialog } from "./createTaskDialog";
+import Image from "next/image";
+import { auth } from "@/lib/firebase";
 
 interface DashboardHeaderProps {
   view: ViewType;
   onViewChange: (view: ViewType) => void;
+  userImage: string;
 }
 
-export function DashboardHeader({ view, onViewChange }: DashboardHeaderProps) {
+export function DashboardHeader({
+  view,
+  onViewChange,
+  userImage,
+}: DashboardHeaderProps) {
+  const handleSignout = () => {
+    try {
+      if (auth.currentUser) {
+        auth.signOut();
+      }
+    } catch (error) {
+      console.error("Error signing out:", error);
+      return <div>Error signing out</div>;
+    }
+  };
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -41,7 +58,20 @@ export function DashboardHeader({ view, onViewChange }: DashboardHeaderProps) {
               Board
             </Button>
           </div>
-          <div className="w-8 h-8 bg-gray-200 rounded-full"></div>
+          <div className="w-8 h-8 bg-gray-200 rounded-full">
+            <Image
+              src={userImage}
+              alt="User avatar"
+              width={32}
+              height={32}
+              className="rounded-full"
+            />
+          </div>
+          <div>
+            <Button onClick={handleSignout} className="flex-1">
+              Logout
+            </Button>
+          </div>
         </div>
       </div>
       <div className="flex items-center justify-between gap-4">
