@@ -1,31 +1,38 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import { DashboardHeader } from "@/components/dashboard-header";
 import { ListView } from "@/components/list-view";
 import { BoardView } from "@/components/board-view";
 import { Task, ViewType } from "../../types/task";
-import { getAllTasks, updateTask } from "@/utils/firestore";
+import { useTaskStore } from "@/store/useTaskStore";
 import { getAuth } from "firebase/auth";
-
-const initialTasks: Task[] = [];
 
 export default function DashboardPage() {
   const [view, setView] = useState<ViewType>("list");
-  const [tasks, setTasks] = useState<Task[]>(initialTasks);
+  const [category, setCategory] = useState<string>("all");
 
   const auth = getAuth();
   const userImage = auth.currentUser?.photoURL || "/default-user.png";
 
-  useEffect(() => {
-    const fetchTasks = async () => {
-      const tasks = await getAllTasks();
-      setTasks(tasks as []);
-      console.log(tasks);
-    };
+  const { tasks, fetchTasks, updateTask } = useTaskStore();
 
+  useEffect(() => {
     fetchTasks();
-  });
+  }, [fetchTasks]);
+
+  const filteredTasks = useMemo(() => {
+    return category === "all"
+      ? tasks
+      : tasks.filter((task: Task) => task.category === category);
+  }, [tasks, category]);
+
+  const handleUpdateTask = useCallback(
+    (task: Task) => {
+      updateTask(task);
+    },
+    [updateTask]
+  );
 
   return (
     <main className="min-h-screen bg-white p-6">
@@ -34,11 +41,12 @@ export default function DashboardPage() {
           view={view}
           onViewChange={setView}
           userImage={userImage}
+          onCategoryChange={setCategory}
         />
         {view === "list" ? (
-          <ListView tasks={tasks} onUpdateTask={updateTask} />
+          <ListView tasks={filteredTasks} onUpdateTask={handleUpdateTask} />
         ) : (
-          <BoardView tasks={tasks} onUpdateTask={updateTask} />
+          <BoardView tasks={filteredTasks} onUpdateTask={handleUpdateTask} />
         )}
       </div>
     </main>

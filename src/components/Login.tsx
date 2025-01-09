@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import React from "react";
 import InteractiveHoverButton from "./ui/interactive-hover-button";
 
-const Login = () => {
+export function GoogleLogin() {
   const router = useRouter();
   const handleLogin = async () => {
     try {
@@ -25,6 +25,4 @@ const Login = () => {
       <InteractiveHoverButton onClick={handleLogin} />
     </div>
   );
-};
-
-export default Login;
+}

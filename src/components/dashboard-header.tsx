@@ -17,12 +17,14 @@ interface DashboardHeaderProps {
   view: ViewType;
   onViewChange: (view: ViewType) => void;
   userImage: string;
+  onCategoryChange: (category: string) => void;
 }
 
 export function DashboardHeader({
   view,
   onViewChange,
   userImage,
+  onCategoryChange,
 }: DashboardHeaderProps) {
   const handleSignout = () => {
     try {
@@ -76,14 +78,14 @@ export function DashboardHeader({
       </div>
       <div className="flex items-center justify-between gap-4">
         <div className="flex gap-2">
-          <Select>
+          <Select onValueChange={onCategoryChange}>
             <SelectTrigger className="w-32">
               <SelectValue placeholder="Category" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All</SelectItem>
-              <SelectItem value="work">Work</SelectItem>
-              <SelectItem value="personal">Personal</SelectItem>
+              <SelectItem value="Work">Work</SelectItem>
+              <SelectItem value="Personal">Personal</SelectItem>
             </SelectContent>
           </Select>
           <Select>

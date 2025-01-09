@@ -1,7 +1,8 @@
 import { CheckSquare2Icon } from "lucide-react";
 
 import Image from "next/image";
-import { Button } from "@/components/ui/button";
+import { GoogleLogin } from "@/components/Login";
+
 import { Card, CardContent } from "@/components/ui/card";
 
 const circles = [
@@ -72,21 +73,9 @@ const Login = () => {
             </div>
 
             {/* Google Login Button */}
-            <Button
-              variant="default"
-              className="w-[364px] h-[60px] bg-[#292929] rounded-[18.91px] hover:bg-[#363636]"
-            >
-              <Image
-                className="w-5 h-[21px] mr-2"
-                alt="Google logo"
-                src="https://c.animaapp.com/vrv2M7Mj/img/group-1171276158@2x.png"
-                width={5}
-                height={21}
-              />
-              <span className="font-bold text-[21.8px]">
-                Continue with Google
-              </span>
-            </Button>
+            <div>
+              <GoogleLogin />
+            </div>
           </div>
         </CardContent>
       </Card>
