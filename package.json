@@ -26,6 +26,7 @@
     "react-beautiful-dnd-next": "^11.0.5",
     "react-dom": "^19.0.0",
     "react-firebase-hooks": "^5.1.1",
+    "react-quill": "^2.0.0",
     "tailwind-merge": "^2.6.0",
     "tailwindcss-animate": "^1.0.7",
     "zustand": "^5.0.3"

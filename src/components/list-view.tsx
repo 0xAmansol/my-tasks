@@ -1,6 +1,5 @@
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { useState } from "react";
-
 import { Checkbox } from "@/components/ui/checkbox";
 import { Task, TaskStatus } from "@/types/task";
 import {
@@ -11,13 +10,21 @@ import {
 } from "@hello-pangea/dnd";
 import { EditTaskDialog } from "./editTaskDialog";
 import { formatDueDate } from "@/utils/formatDueDate";
+import { useTaskStore } from "@/store/useTaskStore";
+import { Button } from "./ui/button";
 
 interface ListViewProps {
   tasks: Task[];
-  onUpdateTask: (updatedTask: Task) => void;
+  onUpdateTask: (task: Task) => void;
 }
 
 export function ListView({ tasks = [], onUpdateTask }: ListViewProps) {
+  const { removeTask } = useTaskStore();
+
+  const handleDeleteTask = (taskId: string) => {
+    removeTask(taskId);
+  };
+
   const [expandedSections, setExpandedSections] = useState<TaskStatus[]>([
     "TODO",
     "IN_PROGRESS",
@@ -102,15 +109,6 @@ export function ListView({ tasks = [], onUpdateTask }: ListViewProps) {
                       ref={provided.innerRef}
                       className="mt-2 space-y-2"
                     >
-                      {/* {status === "TODO" && (
-                        <Button
-                          onClick={() => {}}
-                          variant="ghost"
-                          className="w-full justify-start text-purple-600 hover:text-purple-700 hover:bg-purple-50"
-                        >
-                          + ADD TASK
-                        </Button>
-                      )} */}
                       {sectionTasks.length === 0 ? (
                         <div className="p-4 text-center text-gray-500">
                           No Tasks in {title}
@@ -163,6 +161,14 @@ export function ListView({ tasks = [], onUpdateTask }: ListViewProps) {
                                       task={task}
                                       onUpdate={onUpdateTask}
                                     />
+                                    <Button
+                                      onClick={() => handleDeleteTask(task.id)}
+                                      className="text-red-600 hover:text-red-800"
+                                      variant="ghost"
+                                      size="sm"
+                                    >
+                                      Delete
+                                    </Button>
                                   </div>
                                 </div>
                               </div>

@@ -1,5 +1,3 @@
-"use client";
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -10,42 +8,40 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Upload } from "lucide-react";
-import { Task, TaskStatus } from "@/types/task";
-import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
-import { storage } from "@/lib/firebase";
-import { addTask } from "@/utils/firestore";
+import { Task } from "@/types/task";
+import { useTaskStore } from "@/store/useTaskStore";
 
 export function CreateTaskDialog() {
   const [isOpen, setIsOpen] = useState(false);
-  const [task, setTask] = useState<Task>({
-    id: crypto.randomUUID(),
-    userId: "userId",
-    title: "Add a title",
-    category: "Add a category",
-    status: "NONE",
+  const [task, setTask] = useState<Partial<Task>>({
+    title: "",
+    description: "",
+    category: "Work",
+    status: "TODO",
     dueDate: "",
-    description: "HEY THERE",
-    attachments: [] as string[],
-    completed: false,
+    attachments: [],
   });
+  const { addTask } = useTaskStore();
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsOpen(false);
+  const handleCreateTask = async () => {
+    if (task.title && task.description) {
+      await addTask(task as Task);
+      setIsOpen(false);
+      setTask({
+        title: "",
+        description: "",
+        category: "Work",
+        status: "TODO",
+        dueDate: "",
+        attachments: [],
+      });
+    }
   };
 
   return (
     <>
-      {/* todo - need to swich the button "+ add task" */}
       <Button
         onClick={() => setIsOpen(true)}
         className="bg-purple-600 hover:bg-purple-700"
@@ -57,55 +53,32 @@ export function CreateTaskDialog() {
           <DialogHeader>
             <DialogTitle>Create Task</DialogTitle>
           </DialogHeader>
-          <form className="space-y-4" onSubmit={handleSubmit}>
+          <form
+            className="space-y-4"
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleCreateTask();
+            }}
+          >
             <div className="space-y-2">
               <Label htmlFor="title">Task title</Label>
               <Input
                 id="title"
                 placeholder="Enter task title"
+                value={task.title}
                 onChange={(e) => setTask({ ...task, title: e.target.value })}
               />
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="description">Description</Label>
-              <div className="border rounded-md p-1 space-x-1">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="text-xs"
-                >
-                  B
-                </Button>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="text-xs italic"
-                >
-                  i
-                </Button>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="text-xs underline"
-                >
-                  U
-                </Button>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="text-xs line-through"
-                >
-                  S
-                </Button>
-              </div>
               <Textarea
                 id="description"
-                placeholder="Add description"
+                placeholder="Enter task description"
+                value={task.description}
+                onChange={(e) =>
+                  setTask({ ...task, description: e.target.value })
+                }
                 className="min-h-[100px]"
               />
             </div>
@@ -116,24 +89,20 @@ export function CreateTaskDialog() {
                 <div className="flex gap-2">
                   <Button
                     type="button"
-                    className={
-                      task.category == "Work"
-                        ? "bg-purple-600 hover:bg-purple-700 flex-1"
-                        : "default"
-                    }
+                    variant={task.category === "Work" ? "default" : "outline"}
                     size="sm"
+                    className="flex-1"
                     onClick={() => setTask({ ...task, category: "Work" })}
                   >
                     Work
                   </Button>
                   <Button
                     type="button"
-                    className={
-                      task.category == "Personal"
-                        ? "bg-purple-600 hover:bg-purple-700 flex-1"
-                        : "default"
+                    variant={
+                      task.category === "Personal" ? "default" : "outline"
                     }
                     size="sm"
+                    className="flex-1"
                     onClick={() => setTask({ ...task, category: "Personal" })}
                   >
                     Personal
@@ -143,20 +112,16 @@ export function CreateTaskDialog() {
 
               <div className="space-y-2">
                 <Label htmlFor="status">Task Status</Label>
-                <Select
-                  onValueChange={(value: TaskStatus) =>
-                    setTask({ ...task, status: value })
-                  }
+                <select
+                  id="status"
+                  value={task.status}
+                  onChange={(e) => setTask({ ...task, status: e.target.value })}
+                  className="w-full border rounded-md p-2"
                 >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Choose" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="TODO">To Do</SelectItem>
-                    <SelectItem value="IN_PROGRESS">In Progress</SelectItem>
-                    <SelectItem value="COMPLETED">Completed</SelectItem>
-                  </SelectContent>
-                </Select>
+                  <option value="TODO">To Do</option>
+                  <option value="IN_PROGRESS">In Progress</option>
+                  <option value="COMPLETED">Completed</option>
+                </select>
               </div>
             </div>
 
@@ -165,8 +130,8 @@ export function CreateTaskDialog() {
               <Input
                 type="date"
                 id="due-date"
-                onChange={(e) => setTask({ ...task, dueDate: e.target.value })}
                 value={task.dueDate}
+                onChange={(e) => setTask({ ...task, dueDate: e.target.value })}
               />
             </div>
 
@@ -195,37 +160,11 @@ export function CreateTaskDialog() {
               </div>
               {task.attachments?.map((url, index) => (
                 <div key={index} className="mt-2 text-sm text-gray-600">
-                  {url.split("/").pop()}
+                  <a href={url} target="_blank" rel="noopener noreferrer">
+                    {url.split("/").pop()}
+                  </a>
                 </div>
               ))}
-
-              <input
-                id="file-upload"
-                type="file"
-                className="hidden"
-                multiple
-                onChange={async (e) => {
-                  if (!e.target.files) return;
-
-                  const storageRef = ref(storage);
-                  const uploadPromises = Array.from(e.target.files).map(
-                    async (file) => {
-                      const fileRef = ref(
-                        storageRef,
-                        `tasks/${task.id}/${file.name}`
-                      );
-                      await uploadBytes(fileRef, file);
-                      return getDownloadURL(fileRef);
-                    }
-                  );
-
-                  const urls = await Promise.all(uploadPromises);
-                  setTask({
-                    ...task,
-                    attachments: [...(task.attachments ?? []), ...urls],
-                  });
-                }}
-              />
             </div>
 
             <div className="flex justify-end gap-2 pt-4">
@@ -239,7 +178,6 @@ export function CreateTaskDialog() {
               <Button
                 type="submit"
                 className="bg-purple-600 hover:bg-purple-700"
-                onClick={addTask.bind(null, task)}
               >
                 Create
               </Button>

@@ -7,12 +7,13 @@ import {
   query,
   updateDoc,
   where,
+  orderBy,
 } from "firebase/firestore";
 import { db } from "../lib/firebase";
 import { Task } from "@/types/task";
 import { getAuth } from "firebase/auth";
 
-//add a task
+// Add a task
 export const addTask = async (task: Task) => {
   const auth = getAuth();
 
@@ -25,14 +26,39 @@ export const addTask = async (task: Task) => {
     const docRef = await addDoc(collection(db, "tasks"), {
       title: task.title,
       attachments: task.attachments,
+      description: task.description,
+      category: task.category,
       status: task.status,
       dueDate: task.dueDate,
-      category: task.category,
-      userId: user.email,
+      userId: user.uid,
     });
     return docRef.id;
   } catch (error) {
-    return error;
+    console.error("Error adding task: ", error);
+    throw new Error("Error adding task");
+  }
+};
+
+// Get task history
+export const getTaskHistory = async (taskId: string): Promise<string[]> => {
+  try {
+    const historyQuery = query(
+      collection(db, "taskHistory"),
+      where("taskId", "==", taskId),
+      orderBy("timestamp", "asc")
+    );
+    const querySnapshot = await getDocs(historyQuery);
+    const history: string[] = [];
+    querySnapshot.forEach((doc) => {
+      const data = doc.data();
+      history.push(
+        `${data.timestamp.toDate().toLocaleString()}: ${data.action}`
+      );
+    });
+    return history;
+  } catch (error) {
+    console.error("Error fetching task history: ", error);
+    throw new Error("Error fetching task history");
   }
 };
 

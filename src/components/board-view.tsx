@@ -8,18 +8,29 @@ import {
   DropResult,
 } from "@hello-pangea/dnd";
 import { formatDueDate } from "@/utils/formatDueDate";
+import { useTaskStore } from "@/store/useTaskStore";
+import { Button } from "./ui/button";
+import { useState } from "react";
 
 interface BoardViewProps {
   tasks: Task[];
-  onUpdateTask: (updatedTask: Task) => void;
+  onUpdateTask: (task: Task) => void;
 }
 
+const sectionBackgroundColors: { [key in TaskStatus]: string } = {
+  TODO: "bg-pink-100",
+  IN_PROGRESS: "bg-blue-100",
+  COMPLETED: "bg-green-100",
+  NONE: "bg-gray-100",
+};
+
 export function BoardView({ tasks, onUpdateTask }: BoardViewProps) {
-  const columns: { status: TaskStatus; title: string; bgColor: string }[] = [
-    { status: "TODO", title: "TO-DO", bgColor: "bg-pink-100" },
-    { status: "IN_PROGRESS", title: "IN-PROGRESS", bgColor: "bg-blue-100" },
-    { status: "COMPLETED", title: "COMPLETED", bgColor: "bg-green-100" },
-  ];
+  const { removeTask } = useTaskStore();
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+
+  const handleDeleteTask = (taskId: string) => {
+    removeTask(taskId);
+  };
 
   const onDragEnd = (result: DropResult) => {
     const { source, destination, draggableId } = result;
@@ -58,13 +69,17 @@ export function BoardView({ tasks, onUpdateTask }: BoardViewProps) {
   return (
     <DragDropContext onDragEnd={onDragEnd}>
       <div className="grid grid-cols-3 gap-4 h-[calc(100vh-12rem)] overflow-hidden">
-        {columns.map(({ status, title, bgColor }) => {
+        {["TODO", "IN_PROGRESS", "COMPLETED"].map((status) => {
           const columnTasks = tasks.filter((task) => task.status === status);
 
           return (
             <div key={status} className="flex flex-col rounded-lg bg-gray-50">
-              <div className={`${bgColor} p-3 rounded-t-lg`}>
-                <h2 className="font-medium">{title}</h2>
+              <div
+                className={`${
+                  sectionBackgroundColors[status as TaskStatus]
+                } p-3 rounded-t-lg`}
+              >
+                <h2 className="font-medium">{status.replace("_", " ")}</h2>
               </div>
               <Droppable droppableId={status}>
                 {(provided) => (
@@ -75,7 +90,7 @@ export function BoardView({ tasks, onUpdateTask }: BoardViewProps) {
                   >
                     {columnTasks.length === 0 ? (
                       <div className="p-4 text-center text-gray-500">
-                        No Tasks In {title}
+                        No Tasks In {status.replace("_", " ")}
                       </div>
                     ) : (
                       columnTasks.map((task, index) => (
@@ -90,6 +105,7 @@ export function BoardView({ tasks, onUpdateTask }: BoardViewProps) {
                               {...provided.draggableProps}
                               {...provided.dragHandleProps}
                               className="p-3 bg-white rounded-lg shadow-sm border"
+                              onClick={() => setSelectedTask(task)}
                             >
                               <div className="flex justify-between items-start">
                                 <div className="flex items-start space-x-2">
@@ -122,10 +138,19 @@ export function BoardView({ tasks, onUpdateTask }: BoardViewProps) {
                                     )}
                                   </div>
                                 </div>
-                                <EditTaskDialog
-                                  task={task}
-                                  onUpdate={onUpdateTask}
-                                />
+                                <div className="flex items-center space-x-2">
+                                  <Button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleDeleteTask(task.id);
+                                    }}
+                                    className="text-red-600 hover:text-red-800"
+                                    variant="ghost"
+                                    size="sm"
+                                  >
+                                    Delete
+                                  </Button>
+                                </div>
                               </div>
                             </div>
                           )}
@@ -140,6 +165,15 @@ export function BoardView({ tasks, onUpdateTask }: BoardViewProps) {
           );
         })}
       </div>
+      {selectedTask && (
+        <EditTaskDialog
+          task={selectedTask}
+          onUpdate={(updatedTask) => {
+            onUpdateTask(updatedTask);
+            setSelectedTask(null);
+          }}
+        />
+      )}
     </DragDropContext>
   );
 }

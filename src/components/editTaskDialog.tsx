@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -21,6 +21,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Upload } from "lucide-react";
 import { Task } from "@/types/task";
 import { updateTask } from "@/utils/firestore";
+import { useTaskStore } from "@/store/useTaskStore";
 
 interface EditTaskDialogProps {
   task: Task;
@@ -30,6 +31,23 @@ interface EditTaskDialogProps {
 export function EditTaskDialog({ task, onUpdate }: EditTaskDialogProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [editedTask, setEditedTask] = useState(task);
+  const [history, setHistory] = useState<string[]>([]);
+  const { fetchTaskHistory } = useTaskStore();
+
+  const fetchHistory = useCallback(async () => {
+    try {
+      const taskHistory = await fetchTaskHistory(task.id);
+      setHistory(taskHistory);
+    } catch (error) {
+      console.error("Error fetching task history:", error);
+    }
+  }, [fetchTaskHistory, task.id]);
+
+  useEffect(() => {
+    if (isOpen) {
+      fetchHistory();
+    }
+  }, [isOpen, fetchHistory]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -61,40 +79,6 @@ export function EditTaskDialog({ task, onUpdate }: EditTaskDialogProps) {
 
             <div className="space-y-2">
               <Label htmlFor="description">Description</Label>
-              <div className="border rounded-md p-1 space-x-1">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="text-xs"
-                >
-                  B
-                </Button>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="text-xs italic"
-                >
-                  i
-                </Button>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="text-xs underline"
-                >
-                  U
-                </Button>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="text-xs line-through"
-                >
-                  S
-                </Button>
-              </div>
               <Textarea
                 id="description"
                 value={editedTask.description}
@@ -195,6 +179,30 @@ export function EditTaskDialog({ task, onUpdate }: EditTaskDialogProps) {
                   className="hidden"
                   onChange={() => {}}
                 />
+              </div>
+              {editedTask.attachments?.map((url, index) => (
+                <div key={index} className="mt-2 text-sm text-gray-600">
+                  <a href={url} target="_blank" rel="noopener noreferrer">
+                    {url.split("/").pop()}
+                  </a>
+                </div>
+              ))}
+            </div>
+
+            <div className="space-y-2">
+              <Label>History</Label>
+              <div className="border rounded-lg p-4 space-y-2">
+                {history.length === 0 ? (
+                  <div className="text-sm text-gray-600">
+                    No history available
+                  </div>
+                ) : (
+                  history.map((entry, index) => (
+                    <div key={index} className="text-sm text-gray-600">
+                      {entry}
+                    </div>
+                  ))
+                )}
               </div>
             </div>
 

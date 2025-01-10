@@ -11,6 +11,8 @@ import { getAuth } from "firebase/auth";
 export default function DashboardPage() {
   const [view, setView] = useState<ViewType>("list");
   const [category, setCategory] = useState<string>("all");
+  const [dueDate, setDueDate] = useState<string>("all");
+  const [search, setSearch] = useState<string>("");
 
   const auth = getAuth();
   const userImage = auth.currentUser?.photoURL || "/default-user.png";
@@ -22,10 +24,35 @@ export default function DashboardPage() {
   }, [fetchTasks]);
 
   const filteredTasks = useMemo(() => {
-    return category === "all"
-      ? tasks
-      : tasks.filter((task: Task) => task.category === category);
-  }, [tasks, category]);
+    let filtered = tasks;
+    if (category !== "all") {
+      filtered = filtered.filter((task: Task) => task.category === category);
+    }
+    if (dueDate !== "all") {
+      const today = new Date();
+      const endOfWeek = new Date(today);
+      endOfWeek.setDate(today.getDate() + (7 - today.getDay()));
+      const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+
+      filtered = filtered.filter((task: Task) => {
+        const taskDueDate = new Date(task.dueDate);
+        if (dueDate === "today") {
+          return taskDueDate.toDateString() === today.toDateString();
+        } else if (dueDate === "week") {
+          return taskDueDate <= endOfWeek;
+        } else if (dueDate === "month") {
+          return taskDueDate <= endOfMonth;
+        }
+        return true;
+      });
+    }
+    if (search) {
+      filtered = filtered.filter((task: Task) =>
+        task.title.toLowerCase().includes(search.toLowerCase())
+      );
+    }
+    return filtered;
+  }, [tasks, category, dueDate, search]);
 
   const handleUpdateTask = useCallback(
     (task: Task) => {
@@ -42,6 +69,8 @@ export default function DashboardPage() {
           onViewChange={setView}
           userImage={userImage}
           onCategoryChange={setCategory}
+          onDueDateChange={setDueDate}
+          onSearchChange={setSearch}
         />
         {view === "list" ? (
           <ListView tasks={filteredTasks} onUpdateTask={handleUpdateTask} />
