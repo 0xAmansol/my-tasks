@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/select";
 import { ViewType } from "@/types/task";
 import { Search } from "lucide-react";
-import { CreateTaskDialog } from "./createTaskDialog";
+
 import Image from "next/image";
 import { auth } from "@/lib/firebase";
 import { CheckSquare2Icon } from "lucide-react";
@@ -36,6 +36,7 @@ interface DashboardHeaderProps {
   onDueDateChange: (dueDate: string) => void;
   onSearchChange: (search: string) => void;
 }
+import CreateTaskDialog from "./createTaskDialog";
 
 export function DashboardHeader({
   view,

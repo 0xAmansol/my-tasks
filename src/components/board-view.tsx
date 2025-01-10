@@ -21,7 +21,6 @@ const sectionBackgroundColors: { [key in TaskStatus]: string } = {
   TODO: "bg-pink-100",
   IN_PROGRESS: "bg-blue-100",
   COMPLETED: "bg-green-100",
-  NONE: "bg-gray-100",
 };
 
 export function BoardView({ tasks, onUpdateTask }: BoardViewProps) {

@@ -10,10 +10,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Upload } from "lucide-react";
-import { Task } from "@/types/task";
+import { Task, TaskStatus } from "@/types/task";
 import { useTaskStore } from "@/store/useTaskStore";
 
-export function CreateTaskDialog() {
+export default function CreateTaskDialog() {
   const [isOpen, setIsOpen] = useState(false);
   const [task, setTask] = useState<Partial<Task>>({
     title: "",
@@ -115,7 +115,9 @@ export function CreateTaskDialog() {
                 <select
                   id="status"
                   value={task.status}
-                  onChange={(e) => setTask({ ...task, status: e.target.value })}
+                  onChange={(e) =>
+                    setTask({ ...task, status: e.target.value as TaskStatus })
+                  }
                   className="w-full border rounded-md p-2"
                 >
                   <option value="TODO">To Do</option>
